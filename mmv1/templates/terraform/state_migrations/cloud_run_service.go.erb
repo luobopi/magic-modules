@@ -1,4 +1,4 @@
-func resourceCloudRunServiceResourceV0() *schema.Resource {
+func resourceCloudRunServiceResourceV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"location": {
@@ -962,41 +962,50 @@ this field is set to false, the revision name will still autogenerate.)`,
 	}
 }
 
-func ResourceCloudRunServiceUpgradeV0(_ context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func ResourceCloudRunServiceUpgradeV1(_ context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Printf("[DEBUG] Attributes before migration: %#v", rawState)
 
-	if rawState["labels"] != nil {
-		rawLabels := rawState["labels"].(map[string]interface{})
-		labels := make(map[string]interface{})
-		effectiveLabels := make(map[string]interface{})
+	if rawState["metadata"] != nil {
+		rawMetadatas := rawState["metadata"].([]interface{})
+		if len(rawMetadatas) > 0 && rawMetadatas[0] != nil {
+			rawMetadata := rawMetadatas[0].(map[string]interface{})
 
-		for k, v := range rawLabels {
-			effectiveLabels[k] = v
+			rawLabels := rawMetadata["labels"]
+			if rawLabels != nil {
+				labels := make(map[string]interface{})
+				effectiveLabels := make(map[string]interface{})
 
-			if !cloudRunGoogleProvidedLabels.MatchString(k) {
-				labels[k] = v
+				for k, v := range rawLabels.(map[string]interface{}) {
+					effectiveLabels[k] = v
+
+					if !cloudRunGoogleProvidedLabels.MatchString(k) {
+						labels[k] = v
+					}
+				}
+
+				rawMetadata["labels"] = labels
+				rawMetadata["effective_labels"] = effectiveLabels
 			}
-		}
 
-		rawState["labels"] = labels
-		rawState["effective_labels"] = effectiveLabels
-	}
+			rawAnnotations := rawMetadata["annotations"]
+			if rawAnnotations != nil {
+				annotations := make(map[string]interface{})
+				effectiveAnnotations := make(map[string]interface{})
 
-	if rawState["annotations"] != nil {
-		rawAnnotations := rawState["annotations"].(map[string]interface{})
-		annotations := make(map[string]interface{})
-		effectiveAnnotations := make(map[string]interface{})
+				for k, v := range rawAnnotations.(map[string]interface{}) {
+					effectiveAnnotations[k] = v
 
-		for k, v := range rawAnnotations {
-			effectiveAnnotations[k] = v
+					if !(cloudRunGoogleProvidedAnnotations.MatchString(k) || (strings.HasSuffix(k, "run.googleapis.com/ingress") && v == "all") || (strings.HasSuffix(k, "run.googleapis.com/ingress-status") && v == "all")) {
+						annotations[k] = v
+					}
+				}
 
-			if !cloudRunGoogleProvidedLabels.MatchString(k) {
-				annotations[k] = v
+				rawMetadata["annotations"] = annotations
+				rawMetadata["effective_annotations"] = effectiveAnnotations
 			}
-		}
 
-		rawState["annotations"] = annotations
-		rawState["effective_annotations"] = effectiveAnnotations
+			rawState["metadata"] = []interface{}{rawMetadata}
+		}
 	}
 
 	log.Printf("[DEBUG] Attributes after migration: %#v", rawState)
