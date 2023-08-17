@@ -471,7 +471,7 @@ module Api
  other clients and services."
 
       Api::Type::KeyValuePairs.new(
-        name: "effective_#{name}",
+        name: "effective#{name.capitalize()}",
         output: true,
         api_name: name,
         description:,
@@ -485,7 +485,7 @@ module Api
  and default #{name} configured on the provider."
 
       Api::Type::KeyValuePairs.new(
-        name: "terraform_#{name}",
+        name: "terraform#{name.capitalize()}",
         output: true,
         api_name: name,
         description:,
