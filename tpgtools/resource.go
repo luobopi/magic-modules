@@ -585,6 +585,7 @@ func createResource(schema *openapi.Schema, info *openapi.Info, typeFetcher *Typ
 	if cdOk {
 		res.CustomizeDiff = cdiff.Functions
 	}
+	res.CustomizeDiff = append(res.CustomizeDiff, "tpgresource.SetTerraformLabelsDiff")
 
 	// ListFields
 	if parameters, ok := typeFetcher.doc.Paths["list"]; ok {
@@ -930,7 +931,7 @@ func (r *Resource) loadDCLSamples() []Sample {
 		sample.TestSlug = RenderedString(sampleNameToTitleCase(*sample.Name).titlecase())
 
 		// The "labels" and "annotations" fields in the state are decided by the configuration.
-		// During importing, as the configuration is unavailableafter, the "labels" and "annotations" fields in the state will be empty.
+		// During importing, as the configuration is unavailable, the "labels" and "annotations" fields in the state will be empty.
 		// So add the "labels" and the "annotations" fields to the ImportStateVerifyIgnore list.
 		if r.HasLabels() {
 			sample.IgnoreRead = append(sample.IgnoreRead, "labels")

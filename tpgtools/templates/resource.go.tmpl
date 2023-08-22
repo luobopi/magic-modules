@@ -729,6 +729,21 @@ func flatten{{$.PathType}}Labels(v map[string]string, d *schema.ResourceData) in
 
 	return transformed
 }
+
+func flatten{{$.PathType}}TerrarormLabels(v map[string]string, d *schema.ResourceData) interface{} {
+	if v == nil {
+		return nil
+	}
+
+	transformed := make(map[string]interface{})
+	if l, ok := d.Get("labels").(map[string]interface{}); ok {
+		for k, _ := range l {
+			transformed[k] = l[k]
+		}
+	}
+
+	return transformed
+}
 {{ end }}
 
 {{ if $.HasAnnotations }}
