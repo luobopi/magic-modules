@@ -489,7 +489,8 @@ module Api
       end
 
       props << build_effective_labels_field(
-        'annotations', annotations.field_min_version, annotations.update_verb, annotations.update_url
+        'annotations', annotations.field_min_version,
+        annotations.update_verb, annotations.update_url
       )
     end
 
