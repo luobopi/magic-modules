@@ -807,7 +807,7 @@ module Api
     class KeyValueTerraformLabels < KeyValuePairs
     end
 
-    # An array of string -> string key -> value pairs used specifically for the "effective_labels" field.
+    # An array of string -> string key -> value pairs used specifically for the "effective_labels" and "effective_annotations" fields.
     class KeyValueEffectiveLabels < KeyValuePairs
     end
     
