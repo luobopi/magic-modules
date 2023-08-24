@@ -803,14 +803,15 @@ module Api
       end
     end
 
-    # An array of string -> string key -> value pairs used specifically for the "terraform_labels" field.
+    # An array of string -> string key -> value pairs used for the "terraform_labels" field.
     class KeyValueTerraformLabels < KeyValuePairs
     end
 
-    # An array of string -> string key -> value pairs used specifically for the "effective_labels" and "effective_annotations" fields.
+    # An array of string -> string key -> value pairs used for the "effective_labels"
+    # and "effective_annotations" fields.
     class KeyValueEffectiveLabels < KeyValuePairs
     end
-    
+
     # An array of string -> string key -> value pairs used specifically for the "annotations" field.
     # The field name with this type should be "annotations" literally.
     class KeyValueAnnotations < KeyValuePairs
