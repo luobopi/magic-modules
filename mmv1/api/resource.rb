@@ -386,9 +386,9 @@ module Api
     # they will need to be set in every Update.
     def settable_properties
       all_user_properties
-        .reject { |v| v.output && !v.is_a?(Api::Type::Fingerprint) && !v.is_a?(Api::Type::KeyValueTerraformLabels) }
+        .reject { |v| v.output && !v.is_a?(Api::Type::Fingerprint) && !v.is_a?(Api::Type::KeyValueEffectiveLabels) }
         .reject(&:url_param_only)
-        .reject { |v| v.is_a?(Api::Type::KeyValueLabels) }
+        .reject { |v| v.is_a?(Api::Type::KeyValueLabels) || v.is_a?(Api::Type::KeyValueAnnotations)}
     end
 
     # Properties that will be returned in the API body
@@ -444,20 +444,30 @@ module Api
     def add_labels_related_fields(props, parent)
       props.each do |p|
         if p.is_a? Api::Type::KeyValueLabels
-          # The terraform_labels field is used to write to API, instead of the labels field.
+          # The effective_labels field is used to write to API, instead of the labels field.
           p.ignore_write = true
 
           @custom_diff ||= []
           if parent.nil?
-            @custom_diff.append('tpgresource.SetTerraformLabelsDiff')
+            @custom_diff.append('tpgresource.SetTerraformLabelsDiff', 'tpgresource.SetEffectiveLabelsDiff')
           elsif parent == 'metadata'
-            @custom_diff.append('tpgresource.SetMetadataTerraformLabelsDiff')
+            @custom_diff.append('tpgresource.SetMetadataTerraformLabelsDiff', 'tpgresource.SetMetadataEffectiveLabelsDiff')
           end
 
           props << build_terraform_labels_field('labels', p.field_min_version, p.update_verb,
                                                 p.update_url)
           props << build_effective_labels_field('labels', p.field_min_version)
         elsif p.is_a? Api::Type::KeyValueAnnotations
+          # The effective_annotations field is used to write to API, instead of the annotations field.
+          p.ignore_write = true
+
+          @custom_diff ||= []
+          if parent.nil?
+            @custom_diff.append('tpgresource.SetEffectiveAnnotationsDiff')
+          elsif parent == 'metadata'
+            @custom_diff.append('tpgresource.SetMetadataEffectiveAnnotationsDiff')
+          end
+
           props << build_effective_labels_field('annotations', p.field_min_version)
         elsif (p.is_a? Api::Type::NestedObject) && !p.all_properties.nil?
           p.properties = add_labels_related_fields(p.all_properties, p.name)
@@ -471,13 +481,14 @@ module Api
  present on the resource in GCP, including the #{name} configured through Terraform,\
  other clients and services."
 
-      Api::Type::KeyValuePairs.new(
+      Api::Type::KeyValueEffectiveLabels.new(
         name: "effective#{name.capitalize}",
         output: true,
         api_name: name,
         description:,
         min_version:,
-        ignore_write: true
+        update_verb:,
+        update_url:
       )
     end
 
@@ -491,8 +502,7 @@ module Api
         api_name: name,
         description:,
         min_version:,
-        update_verb:,
-        update_url:
+        ignore_write: true
       )
     end
 

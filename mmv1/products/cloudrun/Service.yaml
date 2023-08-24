@@ -1011,7 +1011,7 @@ properties:
         default_from_api: true
         custom_flatten: templates/terraform/custom_flatten/set_to_project.go.erb
         custom_expand: 'templates/terraform/custom_expand/default_to_project.go.erb'
-      - !ruby/object:Api::Type::KeyValuePairs
+      - !ruby/object:Api::Type::KeyValueAnnotations
         name: annotations
         description: |-
           Annotations is a key value map stored with a resource that
